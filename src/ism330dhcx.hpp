@@ -7,12 +7,15 @@
 #include "hardware/i2c.h"
 
 #pragma once
-struct Vector
-{
-	float XAxis;
-	float YAxis;
-	float ZAxis;
+
+#ifndef VECTOR_STRUCT_H
+#define VECTOR_STRUCT_H
+struct Vector {
+  float XAxis;
+  float YAxis;
+  float ZAxis;
 };
+#endif
 
 enum class AccelODR {
     POWER_DOWN      = 0b0000,  // Power-down mode
