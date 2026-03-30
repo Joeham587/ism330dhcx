@@ -163,25 +163,25 @@ Vector ISM330DHCX::get_gyroscope(){
 
 
 #ifndef MAIN
-int main(){
-  stdio_init_all();
-
-  sleep_ms(1000);
-  printf("Begin\n");
-  ISM330DHCX acc = ISM330DHCX(2, 3);
-  acc.begin();
-  acc.init();
-  Vector read_acc;
-  Vector read_gyro;
-  while (true) {
-    read_acc = acc.get_accelerometer();
-    read_gyro = acc.get_gyroscope();
-
-    printf("a_x: %.3f, a_y: %.3f, a_z: %.3f\n", read_acc.XAxis, read_acc.YAxis, read_acc.ZAxis);
-    printf("g_x: %.3f, g_y: %.3f, g_z: %.3f\n", read_gyro.XAxis, read_gyro.YAxis, read_gyro.ZAxis);
-    sleep_ms(500);
-  }
-
-  return 0;
-}
+//int main(){
+//  stdio_init_all();
+//
+//  sleep_ms(1000);
+//  printf("Begin\n");
+//  ISM330DHCX acc = ISM330DHCX(2, 3);
+//  acc.begin();
+//  acc.init();
+//  Vector read_acc;
+//  Vector read_gyro;
+//  while (true) {
+//    read_acc = acc.get_accelerometer();
+//    read_gyro = acc.get_gyroscope();
+//
+//    printf("a_x: %.3f, a_y: %.3f, a_z: %.3f\n", read_acc.XAxis, read_acc.YAxis, read_acc.ZAxis);
+//    printf("g_x: %.3f, g_y: %.3f, g_z: %.3f\n", read_gyro.XAxis, read_gyro.YAxis, read_gyro.ZAxis);
+//    sleep_ms(500);
+//  }
+//
+//  return 0;
+//}
 #endif
