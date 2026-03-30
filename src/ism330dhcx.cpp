@@ -161,6 +161,8 @@ Vector ISM330DHCX::get_gyroscope(){
   return gyro;
 }
 
+
+#ifndef MAIN
 int main(){
   stdio_init_all();
 
@@ -182,3 +184,4 @@ int main(){
 
   return 0;
 }
+#endif
