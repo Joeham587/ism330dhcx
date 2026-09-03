@@ -154,9 +154,10 @@ Vector ISM330DHCX::get_gyroscope(){
   int16_t gyro_y = (int16_t)((buff_gyro[3] << 8) | buff_gyro[2]);
   int16_t gyro_z = (int16_t)((buff_gyro[5] << 8) | buff_gyro[4]);
 
-  gyro.XAxis = (float)gyro_x / (gyro_sensity);
-  gyro.YAxis = (float)gyro_y / (gyro_sensity);
-  gyro.ZAxis = (float)gyro_z / (gyro_sensity);
+  // gyro_sensity is mdps/LSB -- multiply, then /1000 for dps, don't divide.
+  gyro.XAxis = (float)gyro_x * gyro_sensity / 1000.0f;
+  gyro.YAxis = (float)gyro_y * gyro_sensity / 1000.0f;
+  gyro.ZAxis = (float)gyro_z * gyro_sensity / 1000.0f;
 
   return gyro;
 }
