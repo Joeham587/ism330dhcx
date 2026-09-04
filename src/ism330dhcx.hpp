@@ -228,8 +228,10 @@ class ISM330DHCX{
     int configure_accelerometer(AccelODR aodr=AccelODR::ODR_833Hz, AccelScale ascale = AccelScale::SCALE_2G, AccelLPF alpf = AccelLPF::LPF_DISABLED);
     int configure_gyroscope(GyroODR godr = GyroODR::ODR_833Hz, GyroScale gscale = GyroScale::SCALE_250DPS, GyroFS125 gf125 = GyroFS125::FS_125_ENABLED, GyroFS4000 gf400 = GyroFS4000::FS_4000_DISABLED);
 
-    Vector get_accelerometer();
-    Vector get_gyroscope();
+    // Returns false on I2C failure and leaves out unmodified, so callers
+    // can keep the last known-good reading instead of using garbage.
+    bool get_accelerometer(Vector &out);
+    bool get_gyroscope(Vector &out);
 
     int set_threshold();
 

@@ -124,42 +124,47 @@ void ISM330DHCX::set_gyrosocpe_sensitivity(GyroScale input_sensitivity){
     }
 }
 
-Vector ISM330DHCX::get_accelerometer(){
+bool ISM330DHCX::get_accelerometer(Vector &out){
   uint8_t OUTX_L_A_addr = ISM330DHCX_Registers::OUTX_L_A;
-  uint8_t buff_acc[6];  
-  Vector accel;
-  i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, &OUTX_L_A_addr, 1, true);
-  i2c_read_blocking(i2c_default_ada, ISM330DHCX::address, buff_acc, 6, false);
+  uint8_t buff_acc[6];
+
+  int wrote = i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, &OUTX_L_A_addr, 1, true);
+  if (wrote != 1) return false;
+
+  int read = i2c_read_blocking(i2c_default_ada, ISM330DHCX::address, buff_acc, 6, false);
+  if (read != 6) return false;
 
   int16_t acc_x = (int16_t)((buff_acc[1] << 8) | buff_acc[0]);
   int16_t acc_y = (int16_t)((buff_acc[3] << 8) | buff_acc[2]);
   int16_t acc_z = (int16_t)((buff_acc[5] << 8) | buff_acc[4]);
 
-  accel.XAxis = (float)acc_x / (accelerometer_scale);
-  accel.YAxis = (float)acc_y / (accelerometer_scale);
-  accel.ZAxis = (float)acc_z / (accelerometer_scale);
-  
-  return accel;
+  out.XAxis = (float)acc_x / (accelerometer_scale);
+  out.YAxis = (float)acc_y / (accelerometer_scale);
+  out.ZAxis = (float)acc_z / (accelerometer_scale);
+
+  return true;
 }
 
-Vector ISM330DHCX::get_gyroscope(){
-  Vector gyro;
+bool ISM330DHCX::get_gyroscope(Vector &out){
   uint8_t OUTX_L_G_addr = ISM330DHCX_Registers::OUTX_L_G;
   uint8_t buff_gyro[6];
 
-  i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, &OUTX_L_G_addr, 1, true);
-  i2c_read_blocking(i2c_default_ada, ISM330DHCX::address, buff_gyro, 6, false);
+  int wrote = i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, &OUTX_L_G_addr, 1, true);
+  if (wrote != 1) return false;
+
+  int read = i2c_read_blocking(i2c_default_ada, ISM330DHCX::address, buff_gyro, 6, false);
+  if (read != 6) return false;
 
   int16_t gyro_x = (int16_t)((buff_gyro[1] << 8) | buff_gyro[0]);
   int16_t gyro_y = (int16_t)((buff_gyro[3] << 8) | buff_gyro[2]);
   int16_t gyro_z = (int16_t)((buff_gyro[5] << 8) | buff_gyro[4]);
 
   // gyro_sensity is mdps/LSB -- multiply, then /1000 for dps, don't divide.
-  gyro.XAxis = (float)gyro_x * gyro_sensity / 1000.0f;
-  gyro.YAxis = (float)gyro_y * gyro_sensity / 1000.0f;
-  gyro.ZAxis = (float)gyro_z * gyro_sensity / 1000.0f;
+  out.XAxis = (float)gyro_x * gyro_sensity / 1000.0f;
+  out.YAxis = (float)gyro_y * gyro_sensity / 1000.0f;
+  out.ZAxis = (float)gyro_z * gyro_sensity / 1000.0f;
 
-  return gyro;
+  return true;
 }
 
 
