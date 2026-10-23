@@ -6,7 +6,7 @@
 #include <cstdio>
 
 int ISM330DHCX::begin(){
-  i2c_init(i2c_default_ada, 100 * 1000);
+  i2c_init(i2c_default_ada, 400 * 1000);
   gpio_set_function(sda_pin, GPIO_FUNC_I2C);
   gpio_set_function(scl_pin, GPIO_FUNC_I2C);
   gpio_pull_up(sda_pin);
