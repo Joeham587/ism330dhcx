@@ -27,8 +27,19 @@ int ISM330DHCX::init(){
   }
   printf("Buffer %d\n", buff[0]);
 
+  // CTRL3_C is shared by accel and gyro, so set it before either: BDU (bit 6)
+  // stops the output registers updating mid-read, so a read never mixes the
+  // low byte of one sample with the high byte of the next. IF_INC (bit 2,
+  // on at reset) keeps the register address auto-incrementing for the
+  // 6-byte reads.
+  constexpr uint8_t kCtrl3Bdu = 1 << 6;
+  constexpr uint8_t kCtrl3IfInc = 1 << 2;
+  if (!write_register(ISM330DHCX_Registers::CTRL3_C, kCtrl3Bdu | kCtrl3IfInc)) {
+    return 1;
+  }
+
   ISM330DHCX::configure_accelerometer();
-  ISM330DHCX::configure_gyroscope();
+  if (ISM330DHCX::configure_gyroscope() != 0) return 1;
 
   return 0;
 }
@@ -82,7 +93,7 @@ void ISM330DHCX::set_accelerometer_scale(AccelScale input_scale){
   }
 }
 
-int ISM330DHCX::configure_gyroscope(GyroODR godr, GyroScale gscale, GyroFS125 gf125, GyroFS4000 gf400){
+int ISM330DHCX::configure_gyroscope(GyroODR godr, GyroScale gscale, GyroFS125 gf125, GyroFS4000 gf400, GyroLPF1 glpf1){
   uint8_t data = 0;
   uint8_t ctrl2_g_addr = ISM330DHCX_Registers::CTRL2_G;
 
@@ -91,18 +102,34 @@ int ISM330DHCX::configure_gyroscope(GyroODR godr, GyroScale gscale, GyroFS125 gf
   data |= (static_cast<uint8_t>(gf125) << 1);
   data |= (static_cast<uint8_t>(gf400));
 
-  uint8_t data_write[2] = {ctrl2_g_addr, data};
-
-  i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, data_write, 2, false);
+  if (!write_register(ctrl2_g_addr, data)) return 1;
 
   ISM330DHCX::set_gyrosocpe_sensitivity(gscale);
 
-  uint8_t high_pass_filter = 0b01000000;
-  uint8_t data_high_pass_filter[2] = {ISM330DHCX_Registers::CTRL7_G, high_pass_filter };
+  // CTRL4_C and CTRL6_C also hold non-gyro bits; this driver leaves those at
+  // their reset value (0), so writing the whole register is safe.
+  constexpr uint8_t kCtrl4Lpf1SelG = 1 << 1;
+  const bool lpf1_on = glpf1 != GyroLPF1::LPF1_DISABLED;
+  if (!write_register(ISM330DHCX_Registers::CTRL4_C,
+                      lpf1_on ? kCtrl4Lpf1SelG : 0)) {
+    return 1;
+  }
+  if (lpf1_on && !write_register(ISM330DHCX_Registers::CTRL6_C,
+                                 static_cast<uint8_t>(glpf1))) {
+    return 1;
+  }
 
-  i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, data_high_pass_filter, 2, false);
+  // High-pass filter off (HP_EN_G = 0): it removed slow, steady rotation
+  // from the rate, which the angle integration needs.
+  if (!write_register(ISM330DHCX_Registers::CTRL7_G, 0x00)) return 1;
 
   return 0;
+}
+
+bool ISM330DHCX::write_register(uint8_t reg, uint8_t value){
+  uint8_t data_write[2] = {reg, value};
+  return i2c_write_blocking(i2c_default_ada, ISM330DHCX::address, data_write,
+                            2, false) == 2;
 }
 
 void ISM330DHCX::set_gyrosocpe_sensitivity(GyroScale input_sensitivity){

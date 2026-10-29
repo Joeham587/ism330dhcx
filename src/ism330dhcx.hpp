@@ -74,6 +74,21 @@ enum class GyroFS4000 {
     FS_4000_ENABLED  = 0b1,  // FS set to ±4000 dps
 };
 
+// Gyro LPF1 (CTRL4_C LPF1_SEL_G + CTRL6_C FTYPE[2:0]). The cutoff for each
+// FTYPE depends on the ODR -- see the datasheet table "Gyroscope LPF1
+// bandwidth selection". Approximate values below are for ODR 833 Hz.
+enum class GyroLPF1 {
+    LPF1_DISABLED = -1,     // LPF1 bypassed; bandwidth set by the ODR only
+    FTYPE_000     = 0b000,  // ~245 Hz
+    FTYPE_001     = 0b001,  // ~195 Hz
+    FTYPE_010     = 0b010,  // ~155 Hz
+    FTYPE_011     = 0b011,  // ~293 Hz
+    FTYPE_100     = 0b100,
+    FTYPE_101     = 0b101,
+    FTYPE_110     = 0b110,
+    FTYPE_111     = 0b111,  // lowest cutoff
+};
+
 // Define register addresses and default values for ISM330DHCX
 struct ISM330DHCX_Registers {
     // Register addresses
@@ -219,6 +234,8 @@ class ISM330DHCX{
     void read_data(uint8_t address, uint8_t *buffer);
     void set_accelerometer_scale(AccelScale input_scale);
     void set_gyrosocpe_sensitivity(GyroScale input_sensitivity);
+    // Writes one register; false on I2C failure.
+    bool write_register(uint8_t reg, uint8_t value);
   public:
     ISM330DHCX(uint8_t sda = 2, uint8_t scl = 3)
       : sda_pin(sda), scl_pin(scl){}
@@ -226,7 +243,7 @@ class ISM330DHCX{
     int init();
 
     int configure_accelerometer(AccelODR aodr=AccelODR::ODR_833Hz, AccelScale ascale = AccelScale::SCALE_2G, AccelLPF alpf = AccelLPF::LPF_DISABLED);
-    int configure_gyroscope(GyroODR godr = GyroODR::ODR_833Hz, GyroScale gscale = GyroScale::SCALE_1000DPS, GyroFS125 gf125 = GyroFS125::FS_125_DISABLED, GyroFS4000 gf400 = GyroFS4000::FS_4000_DISABLED);
+    int configure_gyroscope(GyroODR godr = GyroODR::ODR_833Hz, GyroScale gscale = GyroScale::SCALE_1000DPS, GyroFS125 gf125 = GyroFS125::FS_125_DISABLED, GyroFS4000 gf400 = GyroFS4000::FS_4000_DISABLED, GyroLPF1 glpf1 = GyroLPF1::FTYPE_010);
 
     // Returns false on I2C failure and leaves out unmodified, so callers
     // can keep the last known-good reading instead of using garbage.
